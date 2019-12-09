@@ -30,6 +30,9 @@ class SateliteModel:
     def getNumSatelites(self):
         return self.num_satelites
 
+    def getNumVisible(self):
+        return self.numVisible
+
     def getLocations(self):
         return self.satelites
 

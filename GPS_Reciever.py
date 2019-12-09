@@ -42,7 +42,8 @@ class GPS_Reciever:
         #least squares coeficient calculation
         x = (P - Pc)[:,None]
         A = np.concatenate((dpdx[:,None] , dpdy[:,None] , dpdz[:,None] , dpdtau[:,None]),axis=1)
-        C = np.dot(np.linalg.pinv(A),x)
+        pinvA = self.pinvSVD(A)
+        C = np.dot(pinvA,x)
         state = np.concatenate(  (self.coordinates , np.array([self.clock_bias]) )  ,  axis=0  )
         state_est = C + state[:,None]
         est_coordinates = state_est[0:3].flatten()
@@ -53,5 +54,23 @@ class GPS_Reciever:
         return est_coordinates
 
     def pinvSVD(self, A):
-        U, Sigma, V = np.linalg.svd(A)
+        U, singular_values, V_T = np.linalg.svd(A)
+        V = V_T.T
+        M = np.size(U,0)
+        N = np.size(V,1)
+        num = np.size(singular_values)
+        if M == N:
+            Sigma = np.diag(singular_values)
+            SigmaInv = np.diag(1.0/singular_values).T
+        elif M > num:
+            temp = np.zeros((M-num,N))
+            Sigma = np.concatenate( (np.diag(singular_values) , temp) , axis=0 )
+            SigmaInv = np.concatenate( (np.diag(1.0/singular_values) , temp) , axis=0 ).T
+        elif N > num:
+            temp = np.zeros((M,N-num))
+            Sigma = np.concatenate( (np.diag(singular_values) , temp) , axis=1 )
+            SigmaInv = np.concatenate( (np.diag(1.0/singular_values) , temp) , axis=1 ).T
+        B = np.dot(U,np.dot(Sigma,V.T))
+        pinvA = np.dot(V,np.dot(SigmaInv,U.T))
+        return pinvA
         

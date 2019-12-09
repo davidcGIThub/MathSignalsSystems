@@ -16,6 +16,7 @@ t = np.linspace(0,time,time_steps)
 num_orbits = 6
 satelitesPerOrbit = 4
 reciever_clock_bias = 0.0005
+numVisibleSatelites = np.zeros(time_steps)
 #pose
 radius_earth = 6.371*10**6
 x0 = 0.0 # along line of longitude
@@ -54,6 +55,7 @@ for i in range(0,time_steps):
     sat_locs = satelites.getVisibleLocations()
     sat_biases = satelites.getVisibleClockBias()
     coordinates = np.array([pose2D[0],pose2D[1],altitude])
+    numVisibleSatelites[i] = satelites.getNumVisible()
     transmission_time = satelites.getTransmissionTime(coordinates, t[0])
     gpsEstimate_data[i] = gps.estimatePosition(t[i],transmission_time,sat_biases,sat_locs)
     pose2D = car.propagate(pose2D,u[i],dt)
@@ -101,7 +103,7 @@ ax.add_patch(true_fig)
 ax.set_title("Vehicle Path and GPS Estimate")
 plt.show()
 
-figure2, ax3 = plt.subplots()
+figure2, (ax3) = plt.subplots()
 #ax1.plot(t[2:],truth_x[2:], label = 'true')
 #ax1.plot(t[2:],gpsReciever_x[2:], label = 'estimate')
 #ax1.legend()
@@ -116,6 +118,9 @@ ax3.legend()
 ax3.set(xlabel = 'z position (m)')
 ax3.set(ylabel = 'time (sec)')
 ax3.set_title("GPS Estimate of Altitude")
+#ax4.plot(t,numVisibleSatelites)
+#ax4.set(xlabel = 'Number of Visible Satelites')
+#ax4.set(ylabel = 'time (sec)')
 plt.show()
 
 
